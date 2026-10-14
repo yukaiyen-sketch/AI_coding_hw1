@@ -1,36 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 我的班級小工具
 
-## Getting Started
+給導師在班級經營與教學時隨手可用的網頁小工具集合。打開就能用，不需登入，資料只存在當下的瀏覽器畫面中。工具會不定期新增。
 
-First, run the development server:
+## 小工具一覽
+
+| 工具 | 路徑 | 說明 |
+| --- | --- | --- |
+| 🎡 班級抽籤小轉盤 | `/lottery` | 輸入座號或姓名，轉盤隨機抽出幸運兒；抽過的人自動移除 |
+| 🗓️ 製作我的課表 | `/timetable` | 拖曳課程掛牌排出週一到週五、每天 8 節的課表，並下載成圖檔 |
+
+### 🎡 班級抽籤小轉盤（`/lottery`）
+
+- 預設 10 位學生（`01 王小明` … `10 楊欣怡`）
+- **一鍵產生座號**：輸入人數（1–200），或點 10／20／30／40 人快捷鈕，產生 `01 號`、`02 號`…
+- **自訂名單**：一行一位，也可用逗號、頓號分隔，按「套用名單」生效
+- 按轉盤中央「開始」，轉盤減速約 5 秒後停下，跳出恭喜視窗並灑彩紙
+- 抽中的人立即列入下方「已抽中名單」，關閉視窗後從轉盤移除，可一直抽到最後一人
+- 「重新開始」把所有人放回轉盤
+- 名字字級依人數與長度自動調整，過長才以「…」截斷
+
+### 🗓️ 製作我的課表（`/timetable`）
+
+- 課表版面：週一到週五 × 8 節，含每節時間與午休帶，粉色手帳風格
+- 右側課程掛牌預設：國文、英文、數學、理化、生物；可新增課程（自動配色）或刪除掛牌
+- 排課方式：
+  - 將掛牌**拖曳**到課表格子（滑鼠、觸控皆可）
+  - 或**先點掛牌、再點格子**
+- 已排好的課可拖到別格移動；拖出課表外或按 × 即移除
+- 可自訂課表名稱（顯示在課表左上角，也作為下載檔名）
+- 「完成！下載課表圖檔」產生 2 倍解析度 PNG（不含 × 等操作按鈕）
+
+> 目前課表與抽籤名單都**不會自動儲存**，重新整理頁面後會回到預設狀態。
+
+## 技術
+
+- [Next.js](https://nextjs.org) 16（App Router、Turbopack）
+- React 19、TypeScript
+- Tailwind CSS v4（另有自訂樣式在 `src/app/globals.css`）
+- 不需額外套件：轉盤與課表都以 SVG 繪製；課表圖檔由 SVG 轉成 canvas 後輸出 PNG
+
+## 開始使用
+
+需要 Node.js 20 以上。
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+開啟 <http://localhost:3000>。同一網路下的手機或平板可用電腦的區網 IP（例如 `http://192.168.x.x:3000`）開啟。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+其他指令：
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build   # 正式版建置
+npm run start   # 啟動正式版（需先 build）
+npm run lint    # ESLint 檢查
+```
 
-## Learn More
+## 專案結構
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── layout.tsx            # 全站版型與 metadata
+│   ├── page.tsx              # 首頁「我的班級小工具」（TOOLS 清單）
+│   ├── globals.css           # 全域樣式＋各工具的自訂樣式與動畫
+│   ├── lottery/
+│   │   ├── page.tsx          # 路由與 metadata
+│   │   └── LuckyWheel.tsx    # 轉盤、名單設定、中獎視窗（Client Component）
+│   └── timetable/
+│       ├── page.tsx          # 路由與 metadata
+│       ├── TimetableMaker.tsx # 掛牌面板、拖曳邏輯、下載圖檔（Client Component）
+│       └── TimetableBoard.tsx # 課表版面 SVG（節次、時間、裝飾）
+└── lib/
+    └── text.ts               # 估算文字寬度、自動調整字級（轉盤與課表共用）
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 新增一個小工具
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. 在 `src/app/<工具路徑>/` 建立 `page.tsx`（匯出 `metadata` 設定分頁標題）
+2. 需要互動的部分放在獨立的 Client Component（檔案開頭加 `"use client"`）
+3. 在 `src/app/page.tsx` 最上方的 `TOOLS` 陣列加一筆：
 
-## Deploy on Vercel
+   ```ts
+   {
+     href: "/新工具路徑",
+     icon: "🧮",
+     name: "工具名稱",
+     description: "一兩句話說明用途。",
+     accent: "bg-sky-100 text-sky-700",
+   },
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   首頁就會自動多出一個區塊。
+4. 頁面左上角放一個「← 回首頁」連結，與其他工具一致。
